@@ -41,12 +41,12 @@ async function userSignUp(req,res){
             signed: true,
         })
         const token=createToken(user._id.toString(), user.email, "7d");
-        const expire=new Date();
-        expire.setDate(expire.getDate()+7);
+        const expires=new Date();
+        expires.setDate(expires.getDate()+7);
         res.cookie("auth_token",token,{
             path: '/',
             domain: 'localhost',
-            expire,
+            expires,
             httpOnly: true,
             signed: true,
         });
@@ -74,12 +74,12 @@ async function userLogin(req,res){
             signed: true,
         })
         const token=createToken(user._id.toString(), user.email, "7d");
-        const expire=new Date();
-        expire.setDate(expire.getDate()+7);
+        const expires=new Date();
+        expires.setDate(expires.getDate()+7);
         res.cookie("auth_token",token,{
             path: '/',
             domain: 'localhost',
-            expire,
+            expires,
             httpOnly: true,
             signed: true,
         });
