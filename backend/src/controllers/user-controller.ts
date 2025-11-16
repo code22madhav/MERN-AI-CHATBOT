@@ -1,7 +1,6 @@
-import { compare } from "bcrypt";
 import User from "../models/user";
-const mongoose = require('mongoose');
-const { hash } = require('bcrypt');
+import { createToken } from "../utils/token-manager";
+const { hash, compare } = require('bcrypt');
 
 async function getAllUser(req,res){
     try {
@@ -35,6 +34,22 @@ async function userSignUp(req,res){
             return res.status(401).json({error: "User already registered"});
         }
         const user=await createUser(name,email,password)
+        res.clearCookie("auth_token",{
+            path: '/',
+            domain: 'localhost',
+            httpOnly: true,
+            signed: true,
+        })
+        const token=createToken(user._id.toString(), user.email, "7d");
+        const expire=new Date();
+        expire.setDate(expire.getDate()+7);
+        res.cookie("auth_token",token,{
+            path: '/',
+            domain: 'localhost',
+            expire,
+            httpOnly: true,
+            signed: true,
+        });
         return res.status(201).json({user});
     } catch (error) {
         if(error.code===11000) return res.status(400).json({ error: "Email already exists" });
@@ -52,6 +67,22 @@ async function userLogin(req,res){
         if(!isPasswordCorrect){
             return res.status(403).json({error: "Incorrect password"});
         }
+        res.clearCookie("auth_token",{
+            path: '/',
+            domain: 'localhost',
+            httpOnly: true,
+            signed: true,
+        })
+        const token=createToken(user._id.toString(), user.email, "7d");
+        const expire=new Date();
+        expire.setDate(expire.getDate()+7);
+        res.cookie("auth_token",token,{
+            path: '/',
+            domain: 'localhost',
+            expire,
+            httpOnly: true,
+            signed: true,
+        });
         return res.status(200).json({user});
     } catch (error) {
         if(error.code===11000) return res.status(400).json({ error: "Email already exists" });
