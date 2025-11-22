@@ -1,3 +1,4 @@
+import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken'
 
 //I'm facing a typescript issue it is saying 3rd parameter should be a type callback but sign expect first 
@@ -11,3 +12,28 @@ export const createToken=(id: string, email: string, expiresIn: any)=>{
     });
     return token;
 }
+
+export const verifyToken = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const token = req.signedCookies['auth_token'];
+
+  if (!token) {
+    return res.status(401).json({ message: "Token not found" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    res.locals.jwtData = decoded;
+    return next();
+  } catch (err) {
+    return res.status(401).json({ message: "Invalid or expired token" });
+  }
+};
+
+//decode contains email and id of user because they were passed as payload while creating the token
+//res.locals this is the way to pass data locally from one middleware to other express provide it
+//req.signedCookies contain the signedcookies which are set in the brower while they signedIn or
+//logined in for the first time

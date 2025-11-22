@@ -1,3 +1,4 @@
+import { Request, Response, NextFunction } from 'express';
 import User from "../models/user";
 import { createToken } from "../utils/token-manager";
 const { hash, compare } = require('bcrypt');
@@ -83,14 +84,34 @@ async function userLogin(req,res){
             httpOnly: true,
             signed: true,
         });
+        console.log(user);
         return res.status(200).json({user});
     } catch (error) {
         if(error.code===11000) return res.status(400).json({ error: "Email already exists" });
         res.status(500).json({ error: "Something went wrong", details: error.message });
     }
 }
+
+export const verifyUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    //user token check
+    const user = await User.findById(res.locals.jwtData.id);
+    if (!user) {
+      return res.status(401).send("User not registered OR Token malfunctioned");
+    }
+    return res.status(200).json({ message: "OK", name: user.name, email: user.email });
+  } catch (error) {
+    return res.status(500).json({ message: "ERROR", cause: error.message });
+  }
+};
+
 module.exports={
     getAllUser,
     userSignUp,
     userLogin,
+    verifyUser,
 }

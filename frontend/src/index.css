@@ -10,3 +10,26 @@ html,body{
 .image-inverted {
   filter: invert(100%);
 }
+
+.nav-link {
+  font-weight: 600;
+  text-transform: uppercase;
+  margin: 0 12px;
+  padding: 8px 22px;
+  border-radius: 14px;
+  text-decoration: none;
+  letter-spacing: 1px;
+
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+
+  color: #fff;
+  transition: all 0.3s ease;
+}
+
+.nav-link:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-4px);
+  border-color: rgba(255, 255, 255, 0.4);
+}
