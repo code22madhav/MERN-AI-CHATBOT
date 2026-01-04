@@ -3,7 +3,7 @@ import User from "../models/user";
 import { createToken } from "../utils/token-manager";
 const { hash, compare } = require('bcrypt');
 
-async function getAllUser(req,res){
+async function getAllUser(req:Request,res:Response){
     try {
         const Users=await User.find()
         return res.status(200).json({message:"ok", Users})
@@ -28,7 +28,7 @@ const createUser=async(name,email,password)=>{
     }
 }
 
-async function userSignUp(req,res){
+async function userSignUp(req:Request,res:Response){
     try {
         const {name, email, password}=req.body;
         if(await User.findOne({email})){
@@ -57,7 +57,7 @@ async function userSignUp(req,res){
         res.status(500).json({ error: "Something went wrong", details: error.message });
     }
 }
-async function userLogin(req,res){
+async function userLogin(req:Request,res:Response){
     try {
         const {email, password}=req.body;
         const user=await User.findOne({email})
@@ -84,7 +84,6 @@ async function userLogin(req,res){
             httpOnly: true,
             signed: true,
         });
-        console.log(user);
         return res.status(200).json({user});
     } catch (error) {
         if(error.code===11000) return res.status(400).json({ error: "Email already exists" });
@@ -108,10 +107,29 @@ export const verifyUser = async (
     return res.status(500).json({ message: "ERROR", cause: error.message });
   }
 };
+async function userLogout(req:Request,res:Response){
+        try {
+            const user = await User.findById(res.locals.jwtData.id);
+        if (!user) {
+        return res.status(401).send("User not registered OR Token malfunctioned");
+        }
+        res.clearCookie("auth_token",{
+            path: '/',
+            domain: 'localhost',
+            httpOnly: true,
+            signed: true,
+        })
+        return res.status(200).json({message:"user logged out"});
+    } catch (error) {
+        if(error.code===11000) return res.status(400).json({ error: "Email already exists" });
+        res.status(500).json({ error: "Something went wrong", details: error.message });
+    }
+}
 
 module.exports={
     getAllUser,
     userSignUp,
     userLogin,
     verifyUser,
+    userLogout,
 }

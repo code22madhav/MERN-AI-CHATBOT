@@ -1,6 +1,7 @@
+import Chat from "./Chat"
 const Home = () => {
   return (
-    <div>Home</div>
+    <Chat/>
   )
 }
 

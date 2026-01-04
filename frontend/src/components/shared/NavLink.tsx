@@ -8,9 +8,9 @@ type Props={
 }
 
 const NavLink = (props:Props) => {
-    const {to, text, bg, textColor}=props
+    const {to, text, bg, textColor, onClick}=props
     return (
-        <Link to={to} style={{background: bg, color: textColor}} className="nav-link">{text}</Link>
+        <Link to={to} style={{background: bg, color: textColor}} className="nav-link" onClick={onClick}>{text}</Link>
     )
 }
 

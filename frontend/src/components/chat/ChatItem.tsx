@@ -1,0 +1,49 @@
+import { Avatar, Box, Typography } from "@mui/material";
+import { useAuth } from "../../context/AuthContext";
+import ReactMarkDown from "react-markdown"
+
+const ChatItem = ({content, role}:{content:string; role: "user" | "model"}) => {
+  const auth=useAuth();
+  return role === "model"? <Box sx={{
+        display: "flex",
+        flexDirection: { xs: "column", sm: "row" },
+        p: 1,
+        bgcolor: "#004d5612",
+        gap: {xs: 1, sm: 1, md: 2},
+        borderRadius: 2,
+        my: {xs: 1.5, sm: 1, md: 1},
+        minWidth: 0, 
+      }}>
+    <Avatar sx={{ ml: "0", width: {xs: 20, sm: 25, md: 30}, height: {xs: 20, sm: 25, md: 30} }}>
+      <img src="openai.png" alt="openAI" width={"18px"} height={"18px"}/>
+    </Avatar>
+    <Box sx={{ fontSize: { xs: "12px", sm: "14px", md: "14px" }, 
+        display:"block", 
+        minWidth: 0, 
+        overflowWrap: "break-word",
+        wordBreak: "break-word", 
+        textAlign:"left", 
+        "& > *:first-child": {
+          marginTop: 0,
+          lineHeight: 1.25,
+      }}}><ReactMarkDown>{content}</ReactMarkDown></Box>
+  </Box>
+  :
+  <Box sx={{
+        display: "flex",
+        p: 1,
+        bgcolor: "#004d56",
+        gap: {xs: 1, sm: 1, md: 2},
+        borderRadius: 2,
+      }}>
+    <Avatar sx={{ ml: "0", bgcolor: "black", color: "white", 
+      width: {xs: 20, sm: 25, md: 30},
+       height: {xs: 20, sm: 25, md: 30},
+       fontSize: { xs: "12px", sm: "14px", md: "14px" } }}>
+      {auth?.user?.name?.[0]}{auth?.user?.name.split(" ")?.[1]?.[0]}
+    </Avatar>
+    <Typography sx={{ fontSize: { xs: "12px", sm: "14px", md: "14px" }}}>{content}</Typography>
+  </Box>; 
+}
+
+export default ChatItem

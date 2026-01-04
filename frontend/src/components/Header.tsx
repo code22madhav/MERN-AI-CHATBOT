@@ -8,17 +8,11 @@ const Header = () => {
     <AppBar sx={{bgcolor: "transparent", position: "static", boxShadow:"none"}}>
         <Toolbar sx={{display: "flex"}}><Logo/><div>
             {auth?.isLoggedIn ? <>
-            <NavLink 
-            bg="#00fffc"
-            to="/chat"
-            text="chat"
-            textColor="black"
-            />
             <NavLink
-            bg="#51538f"
+            bg="#00fffc"
             to="/logout"
             text="Logout"
-            textColor="white"
+            textColor="black"
             onClick={auth.logout}
             />
             </>: <>
