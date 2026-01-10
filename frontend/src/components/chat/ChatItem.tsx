@@ -1,9 +1,15 @@
 import { Avatar, Box, Typography } from "@mui/material";
 import { useAuth } from "../../context/AuthContext";
 import ReactMarkDown from "react-markdown"
+import { useMemo } from "react";
 
 const ChatItem = ({content, role}:{content:string; role: "user" | "model"}) => {
   const auth=useAuth();
+  const name = auth?.user?.name;
+  const initials = useMemo(() => {
+    if (!name) return "U";
+    return name.split(" ").map(w => w[0]).slice(0, 2).join("");
+  }, [name]);
   return role === "model"? <Box sx={{
         display: "flex",
         flexDirection: { xs: "column", sm: "row" },
@@ -40,7 +46,7 @@ const ChatItem = ({content, role}:{content:string; role: "user" | "model"}) => {
       width: {xs: 20, sm: 25, md: 30},
        height: {xs: 20, sm: 25, md: 30},
        fontSize: { xs: "12px", sm: "14px", md: "14px" } }}>
-      {auth?.user?.name?.[0]}{auth?.user?.name.split(" ")?.[1]?.[0]}
+        {initials}
     </Avatar>
     <Typography sx={{ fontSize: { xs: "12px", sm: "14px", md: "14px" }}}>{content}</Typography>
   </Box>; 

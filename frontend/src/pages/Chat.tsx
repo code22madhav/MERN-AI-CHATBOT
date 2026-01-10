@@ -3,7 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { IoMdSend } from "react-icons/io";
 import ChatItem from "../components/chat/ChatItem";
 import { red } from '@mui/material/colors';
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useMemo } from "react";
 import { useChatContext } from "../context/ChatContext";
 const Chat = () => {
   const inputRef=useRef<HTMLInputElement | null>(null);
@@ -17,6 +17,12 @@ const Chat = () => {
     chatContext.generateResponse(msg);
     inputRef.current!.value = "";
   }
+  const name = auth?.user?.name;
+  const initials = useMemo(() => {
+    if (!name) return "U";
+    return name.split(" ").map(w => w[0]).slice(0, 2).join("");
+  }, [name]);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatContext.chatMessage]);
@@ -62,8 +68,7 @@ const Chat = () => {
               fontWeight: 700,
             }}
           >
-            {auth?.user?.name?.[0]}
-            {auth?.user?.name.split(" ")?.[1]?.[0]}
+            {initials}
           </Avatar>
           <Typography sx={{ mx: "auto", fontFamily: "work sans" }}>
             You are talking to a ChatBOT

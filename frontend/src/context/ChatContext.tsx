@@ -1,5 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { generateChat, getAllChats } from "../helpers/api-communicator";
+import { useAuth } from "./AuthContext";
+
 type ChatMessageType={
     role: string,
     content: string,
@@ -15,6 +17,7 @@ const ChatContext=createContext<ChatContextType>({
 
 export const ChatProvider=({children}:{children: ReactNode})=>{
     const [chatMessage, setChatMessage]=useState<ChatMessageType[]>([])
+    const auth = useAuth();
     const generateResponse=async(content:string)=>{
         setChatMessage((prev)=>[...prev,{role:"user",content}])
         const response= await generateChat(content);
@@ -27,7 +30,13 @@ export const ChatProvider=({children}:{children: ReactNode})=>{
         });
         setChatMessage(formatedChatArray);
     }
-    useEffect(()=>{LoadChats()},[])
+    useEffect(()=>{
+        if (!auth?.isLoggedIn) return;
+        if (!auth?.user) {
+            setChatMessage([]); //tackles when user logout otherwise old users chat remains in context
+            return;
+        }
+        LoadChats()},[auth?.user, auth?.isLoggedIn])
     const value={
         chatMessage,
         generateResponse

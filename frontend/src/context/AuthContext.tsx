@@ -22,7 +22,12 @@ export const AuthProvider= ({children}:{children: ReactNode})=>{
     const login = async (email: string, password: string) => {
         try {
             const data = await userLogin(email, password);
-            SetUser({ name: data.name, email: data.email });
+            if (!data?.user?.name || !data?.user?.email) {
+                SetUser(null);
+                setisLoggedIn(false);
+                return;
+            }
+            SetUser({name: data.user.name, email: data.user.email,});
             setisLoggedIn(true);
         } catch (error) {
             console.log("Error inside auth login:", error);
@@ -33,6 +38,9 @@ export const AuthProvider= ({children}:{children: ReactNode})=>{
         const checkuserSesssion=async()=>{
             try {
                 const data=await checkAuth();
+                if (!data?.name || !data?.email) {
+                    throw new Error("Invalid login response");
+                }
                 SetUser({ name: data.name, email: data.email });
                 setisLoggedIn(true);
             } catch (error) {
