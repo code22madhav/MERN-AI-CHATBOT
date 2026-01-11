@@ -29,7 +29,7 @@ const ChatItem = ({content, role}:{content:string; role: "user" | "model"}) => {
         overflowWrap: "break-word",
         wordBreak: "break-word", 
         textAlign:"left", 
-        "& > *:first-child": {
+        "& > *:first-of-type": {
           marginTop: 0,
           lineHeight: 1.25,
       }}}><ReactMarkDown>{content}</ReactMarkDown></Box>

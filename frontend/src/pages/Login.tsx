@@ -3,7 +3,7 @@ import { Box, Typography, Button } from "@mui/material";
 import CustomizedInput from "../components/shared/CustomizedInput";
 import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 
 const Login = () => {
@@ -38,8 +38,8 @@ const Login = () => {
     >
       {/* LEFT IMAGE SECTION (Hidden on small screens) */}
       <Box 
-        padding={8} 
-        mt={8} 
+        padding={4} 
+        mt={4} 
         display={{ md: "flex", sm: "none", xs: "none" }}
       >
         <img 
@@ -55,9 +55,8 @@ const Login = () => {
         flex={{ xs: 1, md: 0.5 }}
         justifyContent="center"
         alignItems="center"
-        padding={2}
         ml="auto"
-        mt={16}
+        mt={4}
         width="100%"
       >
         <form
@@ -90,7 +89,7 @@ const Login = () => {
 
                 <CustomizedInput type="email" name="email" label="Email" />
                 <CustomizedInput type="password" name="password" label="Password" />
-
+                <Typography mt={2} textAlign={"left"}>Don't have a account? <Link style={{color:"#F2F0EF"}} to="/signup">Create New</Link></Typography>
                 <Button
                 type="submit"
                 sx={{

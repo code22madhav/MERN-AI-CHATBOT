@@ -1,5 +1,5 @@
 import { createContext, type ReactNode, useContext, useEffect, useState } from "react";
-import { checkAuth, userLogin, userLogout } from "../helpers/api-communicator";
+import { checkAuth, userLogin, userLogout, userSignUp } from "../helpers/api-communicator";
 
 type User={
     name: string,
@@ -39,18 +39,42 @@ export const AuthProvider= ({children}:{children: ReactNode})=>{
             try {
                 const data=await checkAuth();
                 if (!data?.name || !data?.email) {
-                    throw new Error("Invalid login response");
+                    SetUser(null);
+                    setisLoggedIn(false);
+                    return;
                 }
                 SetUser({ name: data.name, email: data.email });
                 setisLoggedIn(true);
             } catch (error) {
-                console.log("Error inside auth login:", error);
-                throw error; 
+                //console.log("Error inside auth login:", error);
+                //throw error; 
+                //we should not throw error's from the async functions in useEffect because useEffect runs after
+                // component is rendered on ui and if the promise will return a error then by that time
+                //react will not be there to handle it and look for error boundary and app may crash
+                //so better in such case use state to identify there is a error and update state like below
+                //also when the user is not logged in this checkAuth will throw 401 which is a error but
+                // its not error for us because simply it means user not signed in
+                SetUser(null);
+                setisLoggedIn(false);
             }
         };
         checkuserSesssion();
     },[])
-    const signup=async (name: string, email: string, password: string)=>{};
+    const signup=async (name: string, email: string, password: string)=>{
+        try {
+            const data = await userSignUp(name,email, password);
+            if (!data?.user?.name || !data?.user?.email) {
+                SetUser(null);
+                setisLoggedIn(false);
+                return;
+            }
+            SetUser({name: data.user.name, email: data.user.email,});
+            setisLoggedIn(true);
+        } catch (error) {
+            console.log("Error inside auth login:", error);
+            throw error;  // bubble to UI
+        }
+    };
     const logout=async()=>{ 
         await userLogout()
         setisLoggedIn(false);

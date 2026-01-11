@@ -50,3 +50,14 @@ export const getAllChats=async(req:Request,res:Response)=>{
         res.status(500).send(error.message);
     }
 }
+
+export const deleteChats=async(req:Request,res:Response)=>{
+    try {
+        const user=await User.findById(res.locals.jwtData.id);
+        user.chats=[];
+        await user.save();
+        res.status(200).json({chats:[]})
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+}

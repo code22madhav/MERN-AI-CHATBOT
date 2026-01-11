@@ -1,7 +1,6 @@
-import Chat from "./Chat"
 const Home = () => {
   return (
-    <Chat/>
+    <h1>Chat APP</h1>
   )
 }
 

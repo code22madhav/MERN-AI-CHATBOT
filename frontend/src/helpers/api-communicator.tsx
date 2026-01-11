@@ -10,6 +10,16 @@ export const userLogin = async (email: string, password: string) => {
     }
 };
 
+export const userSignUp= async (name:string, email:string, password: string)=>{
+    try {
+        const res= await axios.post('/user/signup',{name,email,password})
+        return res.data;
+    } catch (error: any) {
+        console.log("Error from axios:", error.response?.data || error.message);
+        throw error
+    }
+}
+
 export const checkAuth=async()=>{
     try {
         const res=await axios.get("/user/check_auth");
@@ -44,6 +54,15 @@ export const getAllChats=async()=>{
     try {
         const result=await axios.get<ChatArray>('/chats/all');
         return result.data.chats;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export const deleteChats=async()=>{
+    try {
+        const res=await axios.get<ChatArray>('/chats/delete');
+        return res.data.chats;
     } catch (error) {
         throw error;
     }

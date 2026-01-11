@@ -9,6 +9,7 @@ const Chat = () => {
   const inputRef=useRef<HTMLInputElement | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const auth = useAuth();
+  const chat=useChatContext();
   const chatContext=useChatContext();
   const handleInputSubmit=(e:React.FormEvent<HTMLFormElement>)=>{
     e.preventDefault();
@@ -23,6 +24,9 @@ const Chat = () => {
     return name.split(" ").map(w => w[0]).slice(0, 2).join("");
   }, [name]);
 
+  const clearConversation=()=>{
+    chat.deleteUsersChat();
+  }
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatContext.chatMessage]);
@@ -90,6 +94,7 @@ const Chat = () => {
                 bgcolor: red.A400,
               },
             }}
+            onClick={clearConversation}
           >
             Clear Conversation
           </Button>

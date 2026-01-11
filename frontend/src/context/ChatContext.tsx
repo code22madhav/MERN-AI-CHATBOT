@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { generateChat, getAllChats } from "../helpers/api-communicator";
+import { generateChat, getAllChats, deleteChats } from "../helpers/api-communicator";
 import { useAuth } from "./AuthContext";
 
 type ChatMessageType={
@@ -9,10 +9,12 @@ type ChatMessageType={
 type ChatContextType={
     chatMessage: ChatMessageType[],
     generateResponse:(content:string)=>Promise<void>;
+    deleteUsersChat:()=>Promise<void>
 }
 const ChatContext=createContext<ChatContextType>({
     chatMessage: [],
     generateResponse: async () => {},
+    deleteUsersChat: async ()=>{}
 });
 
 export const ChatProvider=({children}:{children: ReactNode})=>{
@@ -30,6 +32,10 @@ export const ChatProvider=({children}:{children: ReactNode})=>{
         });
         setChatMessage(formatedChatArray);
     }
+    async function deleteUsersChat(){
+        const chats=await deleteChats();
+        setChatMessage(chats);
+    }
     useEffect(()=>{
         if (!auth?.isLoggedIn) return;
         if (!auth?.user) {
@@ -39,7 +45,8 @@ export const ChatProvider=({children}:{children: ReactNode})=>{
         LoadChats()},[auth?.user, auth?.isLoggedIn])
     const value={
         chatMessage,
-        generateResponse
+        generateResponse,
+        deleteUsersChat,
     }
     return(<ChatContext.Provider value={value}>{children}</ChatContext.Provider>)
 }
