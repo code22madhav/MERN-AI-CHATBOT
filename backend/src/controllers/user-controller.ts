@@ -1,9 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import User from "../models/user";
 import { createToken } from "../utils/token-manager";
+import { sendOTPEmail } from '../utils/sendOtpEmail';
 const { hash, compare } = require('bcrypt');
+const crypto = require('crypto');
 
-async function getAllUser(req:Request,res:Response){
+export async function getAllUser(req:Request,res:Response){
     try {
         const Users=await User.find()
         return res.status(200).json({message:"ok", Users})
@@ -13,7 +15,7 @@ async function getAllUser(req:Request,res:Response){
     }
 }
 
-const createUser=async(name,email,password)=>{
+export const createUser=async(name,email,password)=>{
     try {
         const hashedPassword=await hash(password, 10);
         const user=new User({
@@ -28,36 +30,96 @@ const createUser=async(name,email,password)=>{
     }
 }
 
-async function userSignUp(req:Request,res:Response){
+export async function userSignUp(req:Request,res:Response){
     try {
         const {name, email, password}=req.body;
         if(await User.findOne({email})){
             return res.status(401).json({error: "User already registered"});
         }
         const user=await createUser(name,email,password)
-        res.clearCookie("auth_token",{
-            path: '/',
-            domain: 'localhost',
-            httpOnly: true,
-            signed: true,
-        })
-        const token=createToken(user._id.toString(), user.email, "7d");
-        const expires=new Date();
-        expires.setDate(expires.getDate()+7);
-        res.cookie("auth_token",token,{
-            path: '/',
-            domain: 'localhost',
-            expires,
-            httpOnly: true,
-            signed: true,
+
+        const otp = crypto.randomInt(100000, 999999).toString();
+        const hashedOTP = crypto.createHash("sha256").update(otp).digest("hex");
+        user.emailOTP = hashedOTP;
+        user.emailOTPExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 min
+        user.isEmailVerified = false;
+
+        await user.save();
+
+        await sendOTPEmail(email, otp);
+
+        return res.status(201).json({
+            message: "Verify_OTP",
         });
-        return res.status(201).json({user});
     } catch (error) {
         if(error.code===11000) return res.status(400).json({ error: "Email already exists" });
-        res.status(500).json({ error: "Something went wrong", details: error.message });
+        res.status(500).json({
+            error: "Something went wrong",
+            details: error.message,
+        });
     }
 }
-async function userLogin(req:Request,res:Response){
+
+export async function verifyEmailOTP(req: Request, res: Response){
+  const { email, otp } = req.body;
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    return res.status(400).json({ error: "User not found" });
+  }
+
+  if (user.isEmailVerified) {
+    return res.status(400).json({ error: "Email already verified" });
+  }
+
+  if (!user.emailOTP || !user.emailOTPExpires) {
+    return res.status(400).json({ error: "OTP not found" });
+  }
+
+  if (user.emailOTPExpires < new Date()) {
+    return res.status(400).json({ error: "OTP expired" });
+  }
+
+  const hashedOTP = crypto
+    .createHash("sha256")
+    .update(otp)
+    .digest("hex");
+
+  if (hashedOTP !== user.emailOTP) {
+    return res.status(400).json({ error: "Invalid OTP" });
+  }
+
+  user.isEmailVerified = true;
+  user.emailOTP = undefined;
+  user.emailOTPExpires = undefined;
+
+  await user.save();
+
+    res.clearCookie("auth_token",{
+        path: '/',
+        domain: 'localhost',
+        httpOnly: true,
+        signed: true,
+    })
+    const token=createToken(user._id.toString(), user.email, "7d");
+    const expires=new Date();
+    expires.setDate(expires.getDate()+7);
+    res.cookie("auth_token",token,{
+        path: '/',
+        domain: 'localhost',
+        expires,
+        httpOnly: true,
+        signed: true,
+    });
+
+  return res.json({
+    message: "Email verified successfully",
+    user,
+  });
+}
+
+export async function userLogin(req:Request,res:Response){
     try {
         const {email, password}=req.body;
         const user=await User.findOne({email})
@@ -107,7 +169,7 @@ export const verifyUser = async (
     return res.status(500).json({ message: "ERROR", cause: error.message });
   }
 };
-async function userLogout(req:Request,res:Response){
+export async function userLogout(req:Request,res:Response){
         try {
             const user = await User.findById(res.locals.jwtData.id);
         if (!user) {
@@ -132,4 +194,5 @@ module.exports={
     userLogin,
     verifyUser,
     userLogout,
+    verifyEmailOTP,
 }

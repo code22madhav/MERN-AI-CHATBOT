@@ -3,9 +3,8 @@ import { IoIosLogIn } from "react-icons/io";
 import CustomizedInput from "../components/shared/CustomizedInput";
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import InputBoxContainer from '../components/otpcomponent/otpinput'
+import { userSignUp } from "../helpers/api-communicator";
 
 type FormErrors = {
   name?: string;
@@ -14,10 +13,36 @@ type FormErrors = {
   confirm_password?: string;
 };
 
+type Step = "SIGNUP" | "OTP";
+
 const SignUp = () => {
-  const auth=useAuth();
-  const navigate=useNavigate();
   const [errors, setErrors] = useState<FormErrors>({});
+  const [step, setStep] = useState<Step>("SIGNUP");
+  const [email_2b_verified, setEmail_2b_verified]=useState<string>('');
+
+  const signUpValidation=(name:string,email:string,password:string,confirm_password:string)=>{
+    const newErrors: FormErrors = {};
+    if (!name) {
+    newErrors.name = "Name is required";
+    }
+    if (!email) {
+      newErrors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = "Invalid email format";
+    }
+    if (!password) {
+      newErrors.password = "Password is required";
+    } else if (password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+    }
+    if (!confirm_password) {
+      newErrors.confirm_password = "Confirm password is required";
+    } else if (password !== confirm_password) {
+      newErrors.confirm_password = "Passwords do not match";
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length;
+  }
   const handleChange=async(e:React.FormEvent<HTMLFormElement>)=>{
     e.preventDefault();
     const formData= new FormData(e.currentTarget);
@@ -25,43 +50,23 @@ const SignUp = () => {
     const email = String(formData.get("email") || "").trim();
     const password = String(formData.get("password") || "");
     const confirm_password = String(formData.get("c_password") || "");
-      const newErrors: FormErrors = {};
-
-  if (!name) {
-    newErrors.name = "Name is required";
-  }
-  if (!email) {
-    newErrors.email = "Email is required";
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    newErrors.email = "Invalid email format";
-  }
-  if (!password) {
-    newErrors.password = "Password is required";
-  } else if (password.length < 6) {
-    newErrors.password = "Password must be at least 6 characters";
-  }
-  if (!confirm_password) {
-    newErrors.confirm_password = "Confirm password is required";
-  } else if (password !== confirm_password) {
-    newErrors.confirm_password = "Passwords do not match";
-  }
-  setErrors(newErrors);
-  if (Object.keys(newErrors).length > 0) return;
+    const err=signUpValidation(name,email,password,confirm_password);
+  
+  if ( err> 0) return;
 
   try {
-      toast.loading("Signing In",{id: "signup"});
-      await auth?.signup(name,email, password);
-      toast.success("SignUp Success",{id: "signup"});
+      const res=await userSignUp(name,email, password);
+      console.log(res);
+      if(res.message==='Verify_OTP'){
+        setEmail_2b_verified(email);
+        setStep("OTP");
+      }
   } catch (error) {
       console.log("error occured:", error);
       toast.error("SignUp Failed",{id: "signup"});
   }
   }
-  useEffect(() => {
-    if (auth?.isLoggedIn) {
-      navigate("/chat");
-    }
-  }, [auth?.user]);
+
   return (
     <Box 
       width="100%" 
@@ -84,7 +89,8 @@ const SignUp = () => {
       </Box>
 
       {/* RIGHT FORM SECTION */}
-      <Box
+      {/* SIGNUP FORM CONDITIONAL RENDERING */}
+      {step==='SIGNUP' && (<Box
         display="flex"
         flex={{ xs: 1, md: 0.5 }}
         justifyContent="center"
@@ -153,7 +159,32 @@ const SignUp = () => {
                 </Button>
             </Box>
         </form>
-      </Box>
+      </Box>)}
+      {/* OTP INPUT CONDITIONAL RENDERING */}
+      {step==="OTP" && (<Box
+      display="flex"
+        flex={{ xs: 1, md: 0.5 }}
+        paddingTop={{xs: 16}} 
+        justifyContent="center"
+        alignItems="center"
+        ml="auto"
+        width="100%"><Box
+                sx={{
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                }}
+            >
+                <Typography
+                variant="h4"
+                textAlign="center"
+                fontWeight={600}
+                >
+                Enter OTP
+                </Typography>
+                <InputBoxContainer email={email_2b_verified}/>
+                </Box>
+                </Box>)}
     </Box>
   )
 }

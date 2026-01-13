@@ -33,6 +33,11 @@ export const signUpValidator=[
     ...loginValidator,
 ]
 
+export const verifyEmailValidator=[
+    body('otp').notEmpty().trim().isLength({min: 6}).withMessage("OTP Invalid"),
+    body('email').notEmpty().trim().isEmail().withMessage("Email is required"),
+]
+
 //there is one more another way rightnow we are manually running each validation check (treat these 
 // validation checks middleware func body() is a middleware func) we are doing it by validation.run
 //and the acutal method is defined like this ('signup', validation(), userSignUp)

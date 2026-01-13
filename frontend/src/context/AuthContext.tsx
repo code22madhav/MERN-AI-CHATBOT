@@ -1,5 +1,5 @@
 import { createContext, type ReactNode, useContext, useEffect, useState } from "react";
-import { checkAuth, userLogin, userLogout, userSignUp } from "../helpers/api-communicator";
+import { checkAuth, userLogin, userLogout, verifyEmailreq } from "../helpers/api-communicator";
 
 type User={
     name: string,
@@ -10,7 +10,7 @@ type UserAuth={
     isLoggedIn: boolean,
     user: User | null,
     login: (email: string, password: string)=>Promise<void>,
-    signup: (name: string, email: string, password: string)=>Promise<void>,
+    verifyEmail: (email: string, otp: string)=>Promise<void>,
     logout: ()=>Promise<void>,
 }
 
@@ -60,9 +60,9 @@ export const AuthProvider= ({children}:{children: ReactNode})=>{
         };
         checkuserSesssion();
     },[])
-    const signup=async (name: string, email: string, password: string)=>{
+    const verifyEmail=async (email: string, otp: string)=>{
         try {
-            const data = await userSignUp(name,email, password);
+            const data = await verifyEmailreq(email, otp);
             if (!data?.user?.name || !data?.user?.email) {
                 SetUser(null);
                 setisLoggedIn(false);
@@ -84,7 +84,7 @@ export const AuthProvider= ({children}:{children: ReactNode})=>{
         isLoggedIn,
         user,
         login,
-        signup,
+        verifyEmail,
         logout,
     }
     return <UserContext.Provider value={value}>{children}</UserContext.Provider>

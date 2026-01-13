@@ -10,6 +10,16 @@ export const userLogin = async (email: string, password: string) => {
     }
 };
 
+export const verifyEmailreq = async (email: string, otp: string) => {
+    try {
+        const res = await axios.post("/user/verify_email", { email, otp });
+        return res.data;
+    } catch (error: any) {
+        console.log("Error from axios:", error.response?.data || error.message);
+        throw error //important it bubble up the error so that the next function catchs it that why use throw
+    }
+};
+
 export const userSignUp= async (name:string, email:string, password: string)=>{
     try {
         const res= await axios.post('/user/signup',{name,email,password})
