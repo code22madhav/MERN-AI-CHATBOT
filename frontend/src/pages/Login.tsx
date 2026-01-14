@@ -18,8 +18,13 @@ const Login = () => {
             toast.loading("Logging In",{id: "login"});
             await auth?.login(email, password);  // IMPORTANT: add await otherwise try catch will not work
             toast.success("Login Success",{id: "login"});   //proprly and code will not wait to finsh login
-        } catch (error) {                               //directly login success will be tosted
-            console.log("error occured:", error);
+        } catch (err:any) {                               //directly login success will be tosted
+            console.log("error occured:", err);
+            const errmsg=JSON.parse(err.request.response).error;
+            if(errmsg==="Incorrect password" || errmsg==="User not registered") {
+              toast.error("Invalid Email/Password",{id: "login"});
+              return
+            }
             toast.error("Login Failed",{id: "login"});
         }
     }
@@ -59,13 +64,14 @@ const Login = () => {
         mt={4}
         width="100%"
       >
-        <form
+        <Box
+            component="form"
             onSubmit={handleChange}
-            style={{
+            sx={{
                 width: "100%",
                 maxWidth: "400px",
                 margin: "auto",
-                padding: "30px",
+                padding: { xs: "30px 0", sm: "30px",md: "30px"},
                 boxShadow: "10px 10px 20px #000",
                 borderRadius: "10px",
                 border: "none",
@@ -89,7 +95,7 @@ const Login = () => {
 
                 <CustomizedInput type="email" name="email" label="Email" />
                 <CustomizedInput type="password" name="password" label="Password" />
-                <Typography mt={2} textAlign={"left"}>Don't have a account? <Link style={{color:"#F2F0EF"}} to="/signup">Create New</Link></Typography>
+                <Typography mt={2} textAlign={"left"} sx={{fontSize: { xs: "14px", sm: "16px",md: "20px"}}}>Don't have a account? <Link style={{color:"#F2F0EF"}} to="/signup">Create New</Link></Typography>
                 <Button
                 type="submit"
                 sx={{
@@ -110,7 +116,7 @@ const Login = () => {
                 Login
                 </Button>
             </Box>
-        </form>
+        </Box>
       </Box>
     </Box>
   );

@@ -14,11 +14,18 @@ type FormErrors = {
 };
 
 type Step = "SIGNUP" | "OTP";
+type SignupPayload = {
+  name: string;
+  email: string;
+  password: string;
+};
 
 const SignUp = () => {
   const [errors, setErrors] = useState<FormErrors>({});
   const [step, setStep] = useState<Step>("SIGNUP");
   const [email_2b_verified, setEmail_2b_verified]=useState<string>('');
+  const [signupData, setSignupData] = useState<SignupPayload | null>(null);
+  const [timerKey, setTimerKey]=useState<number>(0);
 
   const signUpValidation=(name:string,email:string,password:string,confirm_password:string)=>{
     const newErrors: FormErrors = {};
@@ -43,6 +50,21 @@ const SignUp = () => {
     setErrors(newErrors);
     return Object.keys(newErrors).length;
   }
+  const executeSignup = async (data: SignupPayload) => {
+  toast.loading("Sending OTP", { id: "signup" });
+
+  const res = await userSignUp(
+    data.name,
+    data.email,
+    data.password
+  );
+
+  if (res.message === "Verify_OTP") {
+    toast.success("OTP Sent", { id: "signup" });
+    setEmail_2b_verified(data.email);
+    setStep("OTP");
+  }
+};
   const handleChange=async(e:React.FormEvent<HTMLFormElement>)=>{
     e.preventDefault();
     const formData= new FormData(e.currentTarget);
@@ -52,21 +74,21 @@ const SignUp = () => {
     const confirm_password = String(formData.get("c_password") || "");
     const err=signUpValidation(name,email,password,confirm_password);
   
-  if ( err> 0) return;
+    if ( err> 0) return;
+    setSignupData({ name, email, password });
 
   try {
-      const res=await userSignUp(name,email, password);
-      console.log(res);
-      if(res.message==='Verify_OTP'){
-        setEmail_2b_verified(email);
-        setStep("OTP");
-      }
-  } catch (error) {
-      console.log("error occured:", error);
-      toast.error("SignUp Failed",{id: "signup"});
+      await executeSignup({ name, email, password });
+  } catch (err:any) {
+      const errmsg=JSON.parse(err.request.response).error;
+      toast.error(`${errmsg}`,{id: "signup"});
   }
   }
-
+  const resendOtp = async () => {
+    if (!signupData) return;
+    await executeSignup(signupData);
+    setTimerKey((p)=>p+1)
+  };
   return (
     <Box 
       width="100%" 
@@ -98,13 +120,14 @@ const SignUp = () => {
         ml="auto"
         width="100%"
       >
-        <form
+        <Box
+            component="form"
             onSubmit={handleChange}
-            style={{
+            sx={{
                 width: "100%",
                 maxWidth: "400px",
                 margin: "auto",
-                padding: "30px",
+                padding: { xs: "30px 0", sm: "30px",md: "30px"},
                 boxShadow: "10px 10px 20px #000",
                 borderRadius: "10px",
                 border: "none",
@@ -158,7 +181,7 @@ const SignUp = () => {
                 SignUp
                 </Button>
             </Box>
-        </form>
+        </Box>
       </Box>)}
       {/* OTP INPUT CONDITIONAL RENDERING */}
       {step==="OTP" && (<Box
@@ -182,7 +205,10 @@ const SignUp = () => {
                 >
                 Enter OTP
                 </Typography>
-                <InputBoxContainer email={email_2b_verified}/>
+                <InputBoxContainer 
+                  email={email_2b_verified} 
+                  resendOTP={resendOtp} 
+                  timerKey={timerKey} />
                 </Box>
                 </Box>)}
     </Box>

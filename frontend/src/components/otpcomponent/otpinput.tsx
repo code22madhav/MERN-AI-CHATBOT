@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { Button } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
 import { IoIosLogIn } from "react-icons/io";
 /* Styling done here only not made seperate file*/
 import styled from "styled-components";
 import { useAuth } from "../../context/AuthContext";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import CountDown from "../countdown/countdown_component";
+
 
 const Container = styled.div`
   display: flex;
@@ -16,7 +18,14 @@ const Container = styled.div`
 const InputBox = styled.input`
   height: 36px;
   width: 36px;
+  @media (max-width: 375px) {
+    height: 32px;
+    width: 32px;
+  }
   margin-left: 10px;
+  &:first-of-type{
+    margin-left: 0;
+  }
   border: 1px solid black;
   background-color: #f5f5f5; /* Light gray instead of 'smoke' */
   text-align: center;
@@ -35,14 +44,20 @@ const InputBox = styled.input`
 
 interface InputBoxContainerProps {
   email: string;
+  resendOTP: () => void;
+  timerKey: number;
 }
 
-const InputBoxContainer=({email}: InputBoxContainerProps)=>{
+const InputBoxContainer=({email, resendOTP, timerKey}: InputBoxContainerProps)=>{
     const [otpfields, setOtpfields]=useState<string[]>(new Array(6).fill(""));
+    const [canresend,setCanResend]=useState<boolean>(false)
     const inputBoxRef=useRef<(HTMLInputElement | null)[]>([]);
     const auth=useAuth()
     const navigate=useNavigate();
-    useEffect(()=>inputBoxRef.current[0]?.focus(),[]);
+    useEffect(()=>{
+        inputBoxRef.current[0]?.focus()
+        setCanResend(false);
+    },[]);
     const handlekeydown=(e:React.KeyboardEvent<HTMLInputElement>,index:number): void =>{
         const key:string=e.key;
         const copyOtpArray: string[]=[...otpfields];
@@ -61,14 +76,23 @@ const InputBoxContainer=({email}: InputBoxContainerProps)=>{
         if(index<5) inputBoxRef.current[index+1]?.focus();
     }
 
-    const submitOTP=()=>{
+    const submitOTP=async()=>{
         const otp=otpfields.join('');
         try {
             toast.loading("verifying",{id: "verifying"});
-            auth?.verifyEmail(email,otp)
+            await auth?.verifyEmail(email,otp)
             toast.success("SignUp Success",{id:"verifying"})
-        } catch (error) {
-            console.log("error occured:", error);
+        } catch (err:any) {
+            const errmsg=JSON.parse(err.request.response).error;
+            if(errmsg==="Invalid OTP") {
+              toast.error("Invalid OTP",{id: "verifying"});
+              return
+            }
+            if(errmsg==="OTP expired") {
+              toast.error("OTP Expired",{id: "verifying"});
+              return
+            }
+            console.log("error occured:", err);
             toast.error("SignUp Failed",{id: "verifying"});
         }
     }
@@ -85,11 +109,44 @@ const InputBoxContainer=({email}: InputBoxContainerProps)=>{
         <Container>
             {otpfields.map((item,index)=><InputBox ref={(currentNode: HTMLInputElement | null) => {inputBoxRef.current[index] = currentNode;}} key={index} type="text" value={item} onKeyDown={(e)=>handlekeydown(e,index)}/>)}
         </Container>
+        <Box sx={{textAlign: "left", paddingTop:"15px"}}>
+            <Typography sx={{display: "inline"}}>OTP expires in: </Typography>
+            <CountDown setCanResend={setCanResend} timerKey={timerKey}/>
+            <Button
+                disabled={!canresend}
+                onClick={()=>{resendOTP()
+                    setOtpfields(new Array(6).fill(""))
+                }}
+                sx={{
+                    padding: "0",
+                    float: "right",
+                    color: "white",
+                    textTransform: "lowercase",
+                    textDecoration: "underline",
+                    textUnderlineOffset: "2px",
+
+                    // enabled hover
+                    "&:hover": {
+                    textDecoration: "underline",
+                    backgroundColor: "transparent",
+                    },
+
+                    // disabled state styling
+                    "&.Mui-disabled": {
+                    color: "rgba(255,255,255,0.4)",
+                    textDecoration: "none",
+                    cursor: "not-allowed",
+                    },
+                }}
+                >
+                resend otp
+            </Button>
+        </Box>
         <Button
                 sx={{
                     px: 2,
                     py: 1,
-                    mt: 4,
+                    mt: 2,
                     width: { xs: "100%", sm: "350px", md: "400px" },
                     borderRadius: 2,
                     bgcolor: "#00fffc",

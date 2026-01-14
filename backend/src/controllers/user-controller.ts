@@ -33,15 +33,32 @@ export const createUser=async(name,email,password)=>{
 export async function userSignUp(req:Request,res:Response){
     try {
         const {name, email, password}=req.body;
-        if(await User.findOne({email})){
-            return res.status(401).json({error: "User already registered"});
+        const existingUser = await User.findOne({ email });
+
+        // Case 1: user exists AND verified
+        if (existingUser?.isEmailVerified) {
+            return res.status(401).json({
+            error: "User already registered",
+            });
         }
-        const user=await createUser(name,email,password)
+
+        let user;
+
+        // Case 2: user exists but NOT verified → reuse
+        if (existingUser && !existingUser.isEmailVerified) {
+            user = existingUser;
+            //if you don't do this and every time createnew user even if userexist and not verified
+            //it will throw you error because user.save will fail with 11000 that user already exist
+            //as email is unique constraint in our db
+        } else {
+            // Case 3: user does not exist → create
+            user = await createUser(name, email, password);
+        }
 
         const otp = crypto.randomInt(100000, 999999).toString();
         const hashedOTP = crypto.createHash("sha256").update(otp).digest("hex");
         user.emailOTP = hashedOTP;
-        user.emailOTPExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 min
+        user.emailOTPExpires = new Date(Date.now() + 5 * 60 * 1000); // 5 min
         user.isEmailVerified = false;
 
         await user.save();

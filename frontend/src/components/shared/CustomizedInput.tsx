@@ -13,10 +13,10 @@ const CustomizedInput = (props: Props) => {
       label={props.label}
       type={props.type}
       InputProps={{
-        style: {
-          width: "400px",
+        sx: {
+          width: { xs: "100%", sm: "400px",md: "400px"},
           borderRadius: 10,
-          fontSize: 20,
+          fontSize: { xs: "14px", sm: "16px",md: "20px"},
           color: "white",
         },
       }}
