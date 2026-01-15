@@ -3,9 +3,6 @@ import { Box, Button, Typography } from "@mui/material";
 import { IoIosLogIn } from "react-icons/io";
 /* Styling done here only not made seperate file*/
 import styled from "styled-components";
-import { useAuth } from "../../context/AuthContext";
-import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
 import CountDown from "../countdown/countdown_component";
 
 
@@ -43,21 +40,24 @@ const InputBox = styled.input`
 //style section end
 
 interface InputBoxContainerProps {
-  email: string;
+  submitOTP: (otp:string)=>void;
   resendOTP: () => void;
   timerKey: number;
 }
 
-const InputBoxContainer=({email, resendOTP, timerKey}: InputBoxContainerProps)=>{
+const InputBoxContainer=({submitOTP, resendOTP, timerKey}: InputBoxContainerProps)=>{
     const [otpfields, setOtpfields]=useState<string[]>(new Array(6).fill(""));
     const [canresend,setCanResend]=useState<boolean>(false)
     const inputBoxRef=useRef<(HTMLInputElement | null)[]>([]);
-    const auth=useAuth()
-    const navigate=useNavigate();
     useEffect(()=>{
         inputBoxRef.current[0]?.focus()
         setCanResend(false);
     },[]);
+
+    const handlesubmitOTP=async()=>{
+        const otp=otpfields.join('');
+        submitOTP(otp);
+    } 
     const handlekeydown=(e:React.KeyboardEvent<HTMLInputElement>,index:number): void =>{
         const key:string=e.key;
         const copyOtpArray: string[]=[...otpfields];
@@ -68,41 +68,21 @@ const InputBoxContainer=({email, resendOTP, timerKey}: InputBoxContainerProps)=>
             if(index>0) inputBoxRef.current[index-1]?.focus();
             return;
         }
+        if (key === "Enter") {
+            e.preventDefault();
+        // submit only if all digits filled
+            if (otpfields.every(d => d !== "")) {
+                handlesubmitOTP();
+            }
+            return;
+        }
         if(key==="ArrowRight") if(index<5) inputBoxRef.current[index+1]?.focus();
         if(key==="ArrowLeft") if(index>0) inputBoxRef.current[index-1]?.focus();
         if(!/^\d$/.test(key)) return;
         copyOtpArray[index]=key;
         setOtpfields(copyOtpArray);
         if(index<5) inputBoxRef.current[index+1]?.focus();
-    }
-
-    const submitOTP=async()=>{
-        const otp=otpfields.join('');
-        try {
-            toast.loading("verifying",{id: "verifying"});
-            await auth?.verifyEmail(email,otp)
-            toast.success("SignUp Success",{id:"verifying"})
-        } catch (err:any) {
-            const errmsg=JSON.parse(err.request.response).error;
-            if(errmsg==="Invalid OTP") {
-              toast.error("Invalid OTP",{id: "verifying"});
-              return
-            }
-            if(errmsg==="OTP expired") {
-              toast.error("OTP Expired",{id: "verifying"});
-              return
-            }
-            console.log("error occured:", err);
-            toast.error("SignUp Failed",{id: "verifying"});
-        }
-    }
-
-    useEffect(() => {
-        if (auth?.isLoggedIn) {
-        navigate("/chat");
-        }
-      }, [auth?.user]);
-    
+    }  
     
     return(
         <>
@@ -156,7 +136,7 @@ const InputBoxContainer=({email, resendOTP, timerKey}: InputBoxContainerProps)=>
                     color: "black",
                     },
                 }}
-                onClick={submitOTP}
+                onClick={handlesubmitOTP}
                 endIcon={<IoIosLogIn />}
                 >
                 Verify

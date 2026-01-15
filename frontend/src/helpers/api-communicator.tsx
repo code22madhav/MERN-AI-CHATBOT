@@ -85,3 +85,42 @@ export const userLogout=async()=>{
         throw error;
     }
 }
+
+type ForgetPasswordResponse = {
+  message: string;
+};
+export const forgetPassword=async(email:string)=>{
+    try {
+        const res= await axios.post<Promise<ForgetPasswordResponse> >('/user/forgot-password',{email})
+        return res.data;
+    } catch (error: any) {
+        console.log("Error from axios:", error.response?.data || error.message);
+        throw error
+    }
+}
+
+type VerifyResetOtpResponse = {
+  resetToken: string;
+};
+export const verifyResetOtp=async(email:string,otp:string)=>{
+    try {
+        const res= await axios.post<Promise<VerifyResetOtpResponse> >('/user/verify-reset-otp',{email,otp})
+        return res.data;
+    } catch (error: any) {
+        console.log("Error from axios:", error.response?.data || error.message);
+        throw error
+    }
+}
+
+type ResetPasswordResponse = {
+  message: string;
+};
+export const resetPassword=async(resetToken:string,newPassword:string)=>{
+    try {
+        const res= await axios.post<Promise<ResetPasswordResponse> >('/user/reset-password',{resetToken,newPassword})
+        return res.data;
+    } catch (error: any) {
+        console.log("Error from axios:", error.response?.data || error.message);
+        throw error
+    }
+}

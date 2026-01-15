@@ -1,10 +1,12 @@
 import { Box, Typography, Button } from "@mui/material";
 import { IoIosLogIn } from "react-icons/io";
 import CustomizedInput from "../components/shared/CustomizedInput";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import InputBoxContainer from '../components/otpcomponent/otpinput'
 import { userSignUp } from "../helpers/api-communicator";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 type FormErrors = {
   name?: string;
@@ -23,9 +25,10 @@ type SignupPayload = {
 const SignUp = () => {
   const [errors, setErrors] = useState<FormErrors>({});
   const [step, setStep] = useState<Step>("SIGNUP");
-  const [email_2b_verified, setEmail_2b_verified]=useState<string>('');
   const [signupData, setSignupData] = useState<SignupPayload | null>(null);
   const [timerKey, setTimerKey]=useState<number>(0);
+  const navigate=useNavigate();
+  const auth=useAuth()
 
   const signUpValidation=(name:string,email:string,password:string,confirm_password:string)=>{
     const newErrors: FormErrors = {};
@@ -61,7 +64,6 @@ const SignUp = () => {
 
   if (res.message === "Verify_OTP") {
     toast.success("OTP Sent", { id: "signup" });
-    setEmail_2b_verified(data.email);
     setStep("OTP");
   }
 };
@@ -84,11 +86,38 @@ const SignUp = () => {
       toast.error(`${errmsg}`,{id: "signup"});
   }
   }
+  const submitOTP=async(otp:string)=>{
+    try {
+        if (!signupData?.email) {
+          throw new Error("Email is missing");
+        }
+        toast.loading("verifying",{id: "verifying"});
+        await auth?.verifyEmail(signupData.email, otp);
+        toast.success("SignUp Success",{id:"verifying"})
+    }catch (err:any) {
+        const errmsg=JSON.parse(err.request.response).error;
+        if(errmsg==="Invalid OTP") {
+          toast.error("Invalid OTP",{id: "verifying"});
+          return
+        }
+        if(errmsg==="OTP expired") {
+          toast.error("OTP Expired",{id: "verifying"});
+          return
+        }
+        console.log("error occured:", err);
+        toast.error("SignUp Failed",{id: "verifying"});
+    }
+  }
   const resendOtp = async () => {
     if (!signupData) return;
     await executeSignup(signupData);
     setTimerKey((p)=>p+1)
   };
+  useEffect(() => {
+        if (auth?.isLoggedIn) {
+        navigate("/chat");
+        }
+  }, [auth?.user]);
   return (
     <Box 
       width="100%" 
@@ -206,7 +235,7 @@ const SignUp = () => {
                 Enter OTP
                 </Typography>
                 <InputBoxContainer 
-                  email={email_2b_verified} 
+                  submitOTP={submitOTP}
                   resendOTP={resendOtp} 
                   timerKey={timerKey} />
                 </Box>

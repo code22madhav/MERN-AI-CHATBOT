@@ -19,6 +19,8 @@ export interface IUser extends Document{
     isEmailVerified: boolean;
     emailOTP?: string;
     emailOTPExpires?: Date;
+    passwordResetToken? : string,
+    passwordResetTokenExpires? :Date;
 }
 
 const chatSchema=new Schema<Chat>({
@@ -53,6 +55,9 @@ const userSchema=new Schema<IUser>({
     },
     emailOTP: String,
     emailOTPExpires: Date,
+    passwordResetToken: String,
+    passwordResetTokenExpires: Date,
+
 })
 
 export default mongoose.model('User', userSchema)

@@ -12,6 +12,8 @@ type UserAuth={
     login: (email: string, password: string)=>Promise<void>,
     verifyEmail: (email: string, otp: string)=>Promise<void>,
     logout: ()=>Promise<void>,
+    loginStepReset:number,
+    setLoginStepReset:React.Dispatch<React.SetStateAction<number>>
 }
 
 const UserContext=createContext<UserAuth | null>(null);
@@ -19,6 +21,7 @@ const UserContext=createContext<UserAuth | null>(null);
 export const AuthProvider= ({children}:{children: ReactNode})=>{
     const [isLoggedIn, setisLoggedIn]=useState(false);
     const [user, SetUser]=useState<User | null>(null);
+    const [loginStepReset,setLoginStepReset]=useState<number>(0);
     const login = async (email: string, password: string) => {
         try {
             const data = await userLogin(email, password);
@@ -86,6 +89,8 @@ export const AuthProvider= ({children}:{children: ReactNode})=>{
         login,
         verifyEmail,
         logout,
+        loginStepReset,
+        setLoginStepReset
     }
     return <UserContext.Provider value={value}>{children}</UserContext.Provider>
 }

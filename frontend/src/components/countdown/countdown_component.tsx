@@ -4,7 +4,7 @@ interface CountDownProps {
   timerKey: number;
 }
 function CountDown({setCanResend, timerKey}:CountDownProps){
-    const [totalSec, setTotalSec]=useState<number>(299);
+    const [totalSec, setTotalSec]=useState<number>(119);
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     useEffect(() => {
         if (intervalRef.current) {
@@ -12,7 +12,7 @@ function CountDown({setCanResend, timerKey}:CountDownProps){
         }
 
         setCanResend(false);
-        setTotalSec(299); // reset time
+        setTotalSec(119); // reset time
 
         intervalRef.current = setInterval(() => {
             setTotalSec(prev => {

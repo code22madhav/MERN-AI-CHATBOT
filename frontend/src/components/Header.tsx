@@ -4,6 +4,7 @@ import NavLink from "./shared/NavLink"
 import { useAuth } from "../context/AuthContext"
 const Header = () => {
     const auth=useAuth();
+    const changeStep=async()=>{auth?.setLoginStepReset((prev)=>prev+1)}
   return (
     <AppBar sx={{bgcolor: "transparent", position: "static", boxShadow:"none"}}>
         <Toolbar sx={{display: "flex"}}><Logo/><div>
@@ -20,6 +21,7 @@ const Header = () => {
             to="/login"
             text="Login"
             textColor="black"
+            onClick={changeStep}
             />}
             </div></Toolbar>
     </AppBar>

@@ -58,7 +58,7 @@ export async function userSignUp(req:Request,res:Response){
         const otp = crypto.randomInt(100000, 999999).toString();
         const hashedOTP = crypto.createHash("sha256").update(otp).digest("hex");
         user.emailOTP = hashedOTP;
-        user.emailOTPExpires = new Date(Date.now() + 5 * 60 * 1000); // 5 min
+        user.emailOTPExpires = new Date(Date.now() + 2 * 60 * 1000); // 5 min
         user.isEmailVerified = false;
 
         await user.save();
@@ -205,6 +205,116 @@ export async function userLogout(req:Request,res:Response){
     }
 }
 
+//Reset password
+export async function forgotPasword(req:Request, res:Response){
+    const {email}=req.body;
+    try {
+        const user=await User.findOne({email});
+        if(!user){
+            res.status(401).json({error:"No User Found"})
+        }
+        const otp = crypto.randomInt(100000, 999999).toString();
+        const hashedOTP = crypto.createHash("sha256").update(otp).digest("hex");
+        user.emailOTP = hashedOTP;
+        user.emailOTPExpires = new Date(Date.now() + 2 * 60 * 1000); // 5 min
+
+        await user.save();
+
+        await sendOTPEmail(email, otp);
+
+        return res.status(201).json({
+            message: "Verify_OTP",
+        });
+    } catch (error) {
+        res.status(500).json({
+            error: "Something went wrong",
+            details: error.message,
+        });
+    }
+}
+
+export async function verifyResetOTP(req:Request, res:Response){
+    const {email,otp}=req.body;
+    try{
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(400).json({ error: "User not found" });
+        }
+
+        if (!user.emailOTP || !user.emailOTPExpires) {
+            return res.status(400).json({ error: "OTP not found" });
+        }
+
+        if (user.emailOTPExpires < new Date()) {
+            return res.status(400).json({ error: "OTP expired" });
+        }
+
+        const hashedOTP = crypto
+            .createHash("sha256")
+            .update(otp)
+            .digest("hex");
+
+        if (hashedOTP !== user.emailOTP) {
+            return res.status(400).json({ error: "Invalid OTP" });
+        }
+
+        // ✅ OTP verified → issue reset token
+        const resetToken:string = crypto.randomBytes(32).toString("hex");
+        const hashedResetToken = crypto
+            .createHash("sha256")
+            .update(resetToken)
+            .digest("hex");
+
+        user.passwordResetToken = hashedResetToken;
+        user.passwordResetTokenExpires = new Date(Date.now() + 2 * 60 * 1000);
+        user.emailOTP = undefined;
+        user.emailOTPExpires = undefined;
+
+        await user.save();
+
+        return res.status(200).json({
+            resetToken,
+        });
+    }catch (error) {
+        res.status(500).json({
+            error: "Something went wrong",
+            details: error.message,
+        });
+    }
+}
+
+export async function resetPassword(req:Request, res:Response){
+    const {resetToken,newPassword}=req.body;
+    const hashedToken = crypto
+        .createHash("sha256")
+        .update(resetToken)
+        .digest("hex");
+    try {
+        const user=await User.findOne({
+        passwordResetToken: hashedToken,
+        passwordResetTokenExpires: { $gt: new Date() }})
+        if (!user) {
+            return res.status(400).json({ error: "Invalid or expired reset token" });
+        }
+
+        user.password = await hash(newPassword, 10);
+        user.passwordResetToken = undefined;
+        user.passwordResetTokenExpires = undefined;
+
+        await user.save();
+
+        return res.status(200).json({
+            message: "Password reset successful",
+        });
+    } catch (error) {
+        res.status(500).json({
+            error: "Something went wrong",
+            details: error.message,
+        });
+    }
+}
+
 module.exports={
     getAllUser,
     userSignUp,
@@ -212,4 +322,7 @@ module.exports={
     verifyUser,
     userLogout,
     verifyEmailOTP,
+    forgotPasword,
+    verifyResetOTP,
+    resetPassword,
 }

@@ -33,8 +33,11 @@ export const signUpValidator=[
     ...loginValidator,
 ]
 
-export const verifyEmailValidator=[
+export const OTPEmailValidator=[
     body('otp').notEmpty().trim().isLength({min: 6}).withMessage("OTP Invalid"),
+    body('email').notEmpty().trim().isEmail().withMessage("Email is required"),
+]
+export const verifyEmail=[
     body('email').notEmpty().trim().isEmail().withMessage("Email is required"),
 ]
 
