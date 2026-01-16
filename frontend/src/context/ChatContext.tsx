@@ -10,11 +10,13 @@ type ChatContextType={
     chatMessage: ChatMessageType[],
     generateResponse:(content:string)=>Promise<void>;
     deleteUsersChat:()=>Promise<void>
+    setChatMessage:React.Dispatch<React.SetStateAction<ChatMessageType[]>>
 }
 const ChatContext=createContext<ChatContextType>({
     chatMessage: [],
     generateResponse: async () => {},
-    deleteUsersChat: async ()=>{}
+    deleteUsersChat: async ()=>{},
+    setChatMessage: ()=>{}
 });
 
 export const ChatProvider=({children}:{children: ReactNode})=>{
@@ -22,7 +24,7 @@ export const ChatProvider=({children}:{children: ReactNode})=>{
     const auth = useAuth();
     const generateResponse=async(content:string)=>{
         setChatMessage((prev)=>[...prev,{role:"user",content}])
-        const response= await generateChat(content);
+        const response= await generateChat(content,chatMessage);
         setChatMessage((prev)=>[...prev,{role:"model",content:response}])
     }
     async function LoadChats(){
@@ -38,17 +40,14 @@ export const ChatProvider=({children}:{children: ReactNode})=>{
     }
     useEffect(()=>{
         if (!auth?.isLoggedIn) return;
-        if (!auth?.user) {
-            setChatMessage([]); //tackles when user logout otherwise old users chat remains in context
-            return;
-        }
         LoadChats()},[auth?.user, auth?.isLoggedIn])
     const value={
         chatMessage,
         generateResponse,
         deleteUsersChat,
+        setChatMessage,
     }
-    return(<ChatContext.Provider value={value}>{children}</ChatContext.Provider>)
+    return(<ChatContext.Provider key={auth?.user?.email ?? "guest"} value={value}>{children}</ChatContext.Provider>)
 }
 
 export const useChatContext=()=>useContext(ChatContext);

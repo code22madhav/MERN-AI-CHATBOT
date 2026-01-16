@@ -4,27 +4,24 @@ import User from '../models/user';
 
 export const newChatCreate=async(req:Request,res:Response)=>{
     const model = configureGemini();
-    const {message}=req.body;
+    const {message, chatHistory}=req.body;
     try {
-        const user=await User.findById(res.locals.jwtData.id);
-        //add new chat to the mongodb
-        user.chats.push({ content: message, role: "user" });
         //formated chat history according to gemini
-        const chatHistory=user.chats.map((m) => ({
+        const chatHistoryFormated=chatHistory.map((m) => ({
             role: m.role,
             parts: [{ text: m.content }]
         }))
         //shared chat history with genimi
         const chat= (await model).startChat({
-        history: chatHistory,
+            history: chatHistoryFormated,
         })
         //sending new message to gemini
         const result = await chat.sendMessage(message);
         const firstCandidate = result?.response?.candidates?.[0];
         if (!firstCandidate) {
-        throw new Error("No candidate returned by Gemini");
+            throw new Error("No candidate returned by Gemini");
         }
-
+        
         // Gemini candidate content shape can vary; commonly:
         // firstCandidate.content.parts[0].text
         const reply =
@@ -33,8 +30,16 @@ export const newChatCreate=async(req:Request,res:Response)=>{
         result.response.text?.() ?? // fallback if SDK helper exists
         "No text";
         //saves gemini response
-        user.chats.push({ content: reply, role: "model" });
-        await user.save();
+        let user = null;
+        if (res.locals.jwtData?.id) {
+            user = await User.findById(res.locals.jwtData.id);
+        }
+        if(user){
+            //add new chat to the mongodb
+            user.chats.push({ content: message, role: "user" });
+            user.chats.push({ content: reply, role: "model" });
+            await user.save();
+        }
         res.status(200).json({ reply });
     } catch (error) {
         res.status(500).send(error.message);
@@ -53,9 +58,12 @@ export const getAllChats=async(req:Request,res:Response)=>{
 
 export const deleteChats=async(req:Request,res:Response)=>{
     try {
-        const user=await User.findById(res.locals.jwtData.id);
-        user.chats=[];
-        await user.save();
+        let user=null;
+        if(res.locals.jwtData?.id){
+            const user=await User.findById(res.locals.jwtData.id);
+            user.chats=[];
+            await user.save();
+        }
         res.status(200).json({chats:[]})
     } catch (error) {
         res.status(500).send(error.message);

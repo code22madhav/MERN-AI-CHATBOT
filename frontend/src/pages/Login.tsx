@@ -117,7 +117,7 @@ const Login = () => {
   };
     useEffect(() => {
       if (auth?.isLoggedIn) {
-        navigate("/chat");
+        navigate("/");
       }
   }, [auth?.user]);
   useEffect(()=>{setStep("LOGIN")},[auth?.loginStepReset])

@@ -115,7 +115,7 @@ const SignUp = () => {
   };
   useEffect(() => {
         if (auth?.isLoggedIn) {
-        navigate("/chat");
+        navigate("/");
         }
   }, [auth?.user]);
   return (

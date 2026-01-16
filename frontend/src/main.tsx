@@ -7,7 +7,8 @@ import { BrowserRouter } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext.tsx'
 import axios from 'axios'
 import { Toaster } from 'react-hot-toast'
-import { ChatProvider } from './context/ChatContext.tsx'
+// import { ChatProvider } from './context/ChatContext.tsx'
+import { ChatProviderWithAuthKey } from './context/ChatProviderWithAuthKey.tsx'
 axios.defaults.baseURL="http://localhost:8000/v1"
 axios.defaults.withCredentials=true;
 
@@ -20,14 +21,14 @@ const theme=createTheme({
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <AuthProvider>
-    <ChatProvider>
-    <BrowserRouter>
-    <ThemeProvider theme={theme}>
-      <Toaster/>
-    <App />
-    </ThemeProvider>
-    </BrowserRouter>
-    </ChatProvider>
+      <ChatProviderWithAuthKey>
+        <BrowserRouter>
+          <ThemeProvider theme={theme}>
+            <Toaster/>
+            <App />
+          </ThemeProvider>
+        </BrowserRouter>
+      </ChatProviderWithAuthKey>
     </AuthProvider>
   </StrictMode>,
 )

@@ -42,9 +42,13 @@ export const checkAuth=async()=>{
 interface ChatResponse {
   reply: string;
 }
-export const generateChat=async(message:string)=>{
+type ChatMessageType={
+    role: string,
+    content: string,
+}
+export const generateChat=async(message:string,chatHistory:ChatMessageType[])=>{
     try {
-        const result=await axios.post<ChatResponse>("/chats/new",{message});
+        const result=await axios.post<ChatResponse>("/chats/new",{message,chatHistory});
         return result.data.reply;
     } catch (error) {
         throw error;
