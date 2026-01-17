@@ -5,6 +5,9 @@ import ChatItem from "../components/chat/ChatItem";
 import { red } from '@mui/material/colors';
 import { useRef, useEffect, useMemo } from "react";
 import { useChatContext } from "../context/ChatContext";
+import PersonIcon from '@mui/icons-material/Person';
+import Modal from "../components/modal/modal";
+
 const Chat = () => {
   const inputRef=useRef<HTMLInputElement | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -20,7 +23,7 @@ const Chat = () => {
   }
   const name = auth?.user?.name;
   const initials = useMemo(() => {
-    if (!name) return "U";
+    if (!name) return;
     return name.split(" ").map(w => w[0]).slice(0, 2).join("");
   }, [name]);
 
@@ -32,6 +35,7 @@ const Chat = () => {
   }, [chatContext.chatMessage]);
   return (
     <>
+    {chat.shouldModalAppear ? <Modal/> :""}
     {chat?.chatMessage.length > 0 ?  
     <Box
       sx={{
@@ -221,7 +225,7 @@ const Chat = () => {
               fontWeight: 700,
             }}
           >
-            {initials}
+            {initials && <PersonIcon/>}
           </Avatar>
           <Typography sx={{ mx: "auto", fontFamily: "work sans" }}>
             You are talking to a ChatBOT

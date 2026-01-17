@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import Typography from "@mui/material/Typography";
+import EmojiObjectsIcon from '@mui/icons-material/EmojiObjects';
 const Logo = () => {
   return (
     <div
@@ -11,13 +12,7 @@ const Logo = () => {
       }}
     >
       <Link to={"/"}>
-        <img
-          src="openai.png"
-          alt="openai"
-          width={"30px"}
-          height={"30px"}
-          className="image-inverted"
-        />
+        <EmojiObjectsIcon sx={{width:"40px", height:"40px", color:"white"}}/>
       </Link>{" "}
       <Typography
         sx={{

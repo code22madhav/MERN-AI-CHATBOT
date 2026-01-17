@@ -2,17 +2,19 @@ import { Avatar, Box, Typography } from "@mui/material";
 import { useAuth } from "../../context/AuthContext";
 import ReactMarkDown from "react-markdown"
 import { useMemo } from "react";
+import PersonIcon from '@mui/icons-material/Person';
+import EmojiObjectsIcon from '@mui/icons-material/EmojiObjects';
 
 const ChatItem = ({content, role}:{content:string; role: "user" | "model"}) => {
   const auth=useAuth();
   const name = auth?.user?.name;
   const initials = useMemo(() => {
-    if (!name) return "U";
+    if (!name) return;
     return name.split(" ").map(w => w[0]).slice(0, 2).join("");
   }, [name]);
-  return role === "model"? <Box sx={{
+  return role === "model"? 
+  <Box sx={{
         display: "flex",
-        flexDirection: { xs: "column", sm: "row" },
         p: 1,
         bgcolor: "#004d5612",
         gap: {xs: 1, sm: 1, md: 2},
@@ -20,8 +22,8 @@ const ChatItem = ({content, role}:{content:string; role: "user" | "model"}) => {
         my: {xs: 1.5, sm: 1, md: 1},
         minWidth: 0, 
       }}>
-    <Avatar sx={{ ml: "0", width: {xs: 20, sm: 25, md: 30}, height: {xs: 20, sm: 25, md: 30} }}>
-      <img src="openai.png" alt="openAI" width={"18px"} height={"18px"}/>
+    <Avatar sx={{ ml: "0", width: {xs: 25, sm: 25, md: 30}, height: {xs: 25, sm: 25, md: 30}}}>
+      <EmojiObjectsIcon width={"18px"} height={"18px"}/>
     </Avatar>
     <Box sx={{ fontSize: { xs: "12px", sm: "14px", md: "14px" }, 
         display:"block", 
@@ -43,10 +45,10 @@ const ChatItem = ({content, role}:{content:string; role: "user" | "model"}) => {
         borderRadius: 2,
       }}>
     <Avatar sx={{ ml: "0", bgcolor: "black", color: "white", 
-      width: {xs: 20, sm: 25, md: 30},
-       height: {xs: 20, sm: 25, md: 30},
-       fontSize: { xs: "12px", sm: "14px", md: "14px" } }}>
-        {initials}
+      width: {xs: 25, sm: 25, md: 30},
+       height: {xs: 25, sm: 25, md: 30},
+       fontSize: { xs: "9px", sm: "10px", md: "12px" } }}>
+        {initials ? initials : <PersonIcon/>}
     </Avatar>
     <Typography sx={{ fontSize: { xs: "12px", sm: "14px", md: "14px" }}}>{content}</Typography>
   </Box>; 
