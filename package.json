@@ -1,0 +1,27 @@
+{
+  "name": "mern-open-ai-chatbot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "install-backend": "npm install --prefix backend",
+    "install-frontend": "npm install --prefix frontend",
+    "install": "npm run install-backend && npm run install-frontend",
+    "server": "npm run dev --prefix backend",
+    "client": "npm run dev --prefix frontend",
+    "watch": "concurrently \"npm run server\" \"npm run client\"",
+    "test": "npm test --prefix server && npm test --prefix client",
+    "deploy": "npm run build --prefix frontend && npm start --prefix backend"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/code22madhav/MERN-AI-CHATBOT.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/code22madhav/MERN-AI-CHATBOT/issues"
+  },
+  "homepage": "https://github.com/code22madhav/MERN-AI-CHATBOT#readme"
+}
