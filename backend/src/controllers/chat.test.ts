@@ -18,11 +18,26 @@ jest.mock('../utils/token-manager', () => ({
 
 jest.mock('../models/user');
 
-describe('Test get /all',()=>{
-    test('It should respond with 200 success', async ()=>{
-        (User.findById as jest.Mock).mockResolvedValue({
-            chats: [],
+describe('CHAT API',()=>{
+    describe('Test get /all',()=>{
+        test('It should respond with 200 success', async ()=>{
+            (User.findById as jest.Mock).mockResolvedValue({
+                chats: [],
+            });
+            const res=await request(app).get('/v1/chats/all').expect('Content-type',/json/).expect(200);
         });
-        const res=await request(app).get('/v1/chats/all').expect('Content-type',/json/).expect(200);
     });
-});
+    describe('Test post /new',()=>{
+        test('It should respond with 200 success', async()=>{
+            const res=await request(app).post('/v1/chats/new').send({message:"hi how are you", chatHistory:[]}).expect(200).expect('Content-type',/json/);
+        })
+    })
+    describe('Test get /delete',()=>{
+        test('It should respond with 200 success', async()=>{
+            const res=await request(app).get('/v1/chats/delete').expect('Content-type',/json/).expect(200);
+            expect(res.body).toEqual({
+                chats: [],
+            });
+        })
+    })
+})
