@@ -1,7 +1,7 @@
 import request from 'supertest';
 import app from '../app';
 import User from '../models/user';
-
+import { configureGemini } from '../config/openai-config'
 
 //when ever we mock a module we have to mock complete exports from it there all though testing some route don't
 // involve both the midddleware but it has to be mocked since the complete module is exported
@@ -16,7 +16,40 @@ jest.mock('../utils/token-manager', () => ({
   },
 }));
 
-jest.mock('../models/user');
+jest.mock('../config/openai-config', () => ({
+  configureGemini: jest.fn()
+}));
+
+(configureGemini as jest.Mock).mockResolvedValue({
+  startChat: jest.fn().mockReturnValue({
+    sendMessage: jest.fn().mockResolvedValue({
+      response: {
+        candidates: [
+          {
+            content: [
+              {
+                parts: [{ text: 'Mock Gemini reply' }]
+              }
+            ]
+          }
+        ]
+      }
+    })
+  })
+});
+
+
+jest.mock('../models/user',() => ({
+  __esModule: true,
+  default: {
+    findById: jest.fn()
+  }
+}));
+
+(User.findById as jest.Mock).mockResolvedValue({
+  chats: [],
+  save: jest.fn().mockResolvedValue(true)
+});
 
 describe('CHAT API',()=>{
     describe('Test get /all',()=>{
