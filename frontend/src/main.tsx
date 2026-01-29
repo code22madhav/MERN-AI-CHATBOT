@@ -9,7 +9,7 @@ import axios from 'axios'
 import { Toaster } from 'react-hot-toast'
 // import { ChatProvider } from './context/ChatContext.tsx'
 import { ChatProviderWithAuthKey } from './context/ChatProviderWithAuthKey.tsx'
-axios.defaults.baseURL="http://localhost:8000/v1"
+axios.defaults.baseURL="v1"
 axios.defaults.withCredentials=true;
 
 const theme=createTheme({
