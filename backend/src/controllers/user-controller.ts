@@ -4,6 +4,7 @@ import { createToken } from "../utils/token-manager";
 import { sendOTPEmail } from '../utils/sendOtpEmail';
 const { hash, compare } = require('bcrypt');
 const crypto = require('crypto');
+const isProd = process.env.NODE_ENV === 'production';
 
 export async function getAllUser(req:Request,res:Response){
     try {
@@ -128,6 +129,8 @@ export async function verifyEmailOTP(req: Request, res: Response){
         expires,
         httpOnly: true,
         signed: true,
+        secure: isProd,           // ❗ false in PWD
+        sameSite: isProd ? 'none' : 'lax',
     });
 
   return res.json({
@@ -162,6 +165,8 @@ export async function userLogin(req:Request,res:Response){
             expires,
             httpOnly: true,
             signed: true,
+            secure: isProd,           // ❗ false in PWD
+            sameSite: isProd ? 'none' : 'lax',
         });
         return res.status(200).json({user});
     } catch (error) {
