@@ -71,6 +71,15 @@ app.post(
   }
 );
 
+my understanding:
+[] just adding this validation chain automatically validates your req but to catch the error
+ in the next middleware you have to do validateResult(req) this will give you error or the 
+ result of validation.
+ or what you can do you can write the validation body('email').isEmail().nonEmpty().run(req)
+ you have to do .run in the last of the validation so that it runs and store the result
+ now in this implementation it's made little fancy we have createad a wrapper function 
+ which return the result and we do the validation.run in for loop manually
+
 The flow
 
 Validation chains: functions like body('email'), param('id'), query('page'), header(...), cookie(...) 
