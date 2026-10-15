@@ -48,3 +48,36 @@ export const verifyEmail=[
 //in the post method middleware chain like this ('/signup', signUpValidator, validate, userSignUp)
 //this runs the signUpValidator as middleware and runs all the body function automallically and it
 //bind the error of each run to the req and then the next middleware is called in the chain 
+
+
+/*
+In short this is how you will write express validator these all files are made to keep the structing good
+const { body, validationResult } = require('express-validator');
+
+app.post(
+  '/signup',
+  [
+    body('email').trim().isEmail().normalizeEmail().withMessage('Invalid email'),
+    body('password').isLength({ min: 8 }).withMessage('Min 8 chars'),
+    body('age').optional().isInt({ min: 18 }).toInt(),
+  ],
+  (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    // req.body is now validated and sanitized
+    res.sendStatus(201);
+  }
+);
+
+The flow
+
+Validation chains: functions like body('email'), param('id'), query('page'), header(...), cookie(...) 
+select a field from a specific part of the request. You chain rules onto them (.isEmail(),
+.isLength({ min: 8 }), .notEmpty()). Execution: each chain is itself a middleware. 
+When the request hits it, every rule runs and failures are stored on the request object.
+Nothing is rejected or thrown at this point.Result collection: in your handler (or a shared middleware) 
+you call validationResult(req) to read those stored errors and decide the response.
+
+*/
